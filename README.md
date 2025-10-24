@@ -5,35 +5,35 @@ A multiplayer drawing and guessing game built with React, Node.js, Socket.IO, an
 ## ✨ Features
 
 ### 🎮 Core Gameplay
-- **Real-time Multiplayer**: Up to 8 players per room
-- **Turn-based Drawing**: Players rotate as the drawer
-- **Word Guessing**: Other players guess the word being drawn
-- **Timer System**: 1-minute guessing timer per round
-- **Automatic Canvas Clearing**: Canvas clears between rounds
+- **Real-time Multiplayer**: Jump into shared rooms with friends
+- **Turn-based Drawing**: Drawer rotates automatically each round
+- **Guessing Phase**: Non-drawers race to guess the hidden word
+- **60s Round Timer**: Keeps gameplay fast-paced and competitive
+- **Auto Canvas Reset**: Board clears between rounds for a fresh start
 
-### 🏆 Scoring System
-- **Dual Scoring**: Room-specific scores (reset with new room) + Lifetime scores
-- **XP System**: Earn XP for correct guesses (faster guesses = more XP)
-- **Level Progression**: Level up based on total XP
-- **Real-time Scoreboard**: Live updates of all player scores
+### 🏆 Progression & Scoring
+- **Room Scoreboard**: Track round-by-round performance while you play
+- **XP Rewards**: Correct guesses grant XP scaled by reaction time
+- **Level System**: Persistent levels stored in MongoDB user profiles
+- **Lifetime Stats**: Total guesses and cosmetics kept for each player
 
 ### 🎯 Word System
-- **Difficulty Selection**: Easy, Medium, Hard, and Mixed difficulty modes
-- **295+ Words**: Comprehensive word database with difficulty ratings
-- **Smart Randomization**: Advanced algorithm prevents word repetition
-- **Custom Word Lists**: Room hosts can upload custom words
+- **Smart Selection**: Backend balances easy / medium / hard vocabulary
+- **Word Choices**: Drawer gets multiple options before each round
+- **Custom Lists**: Hosts can upload tailored word lists via REST API
+- **Auto Hints**: Players see masked hints that reveal letter counts
 
 ### 🎨 Drawing Features
-- **Real-time Sync**: All players see drawings instantly
-- **Multiple Tools**: Pen, eraser, and color selection
-- **Responsive Canvas**: Works on desktop and mobile
-- **Stroke History**: Maintains drawing state across connections
+- **Real-time Sync**: Socket.IO broadcasts every stroke live
+- **Color & Size Controls**: Drawer can tweak brush color and thickness
+- **Responsive Canvas**: Optimized for both desktop and touch devices
+- **Canvas Management**: Clear button + automatic resets keep things tidy
 
-### 🔐 Authentication & User Management
-- **Firebase Authentication**: Secure user login system
-- **User Profiles**: Username, XP, level, and statistics
-- **Room Management**: Create, join, and manage game rooms
-- **Host Controls**: Room creators can change difficulty settings
+### 🔐 Authentication & Player Management
+- **Firebase Auth (Google)**: Seamless one-click sign-in flow
+- **Username Check & Registration**: Prevent duplicate in-room names
+- **Persistent Profiles**: XP, level, cosmetics stored per Firebase UID
+- **Room Lifecycle**: Create / join rooms, auto cleanup after inactivity
 
 ## 🚀 Quick Start
 
@@ -71,6 +71,7 @@ A multiplayer drawing and guessing game built with React, Node.js, Socket.IO, an
    FIREBASE_API_KEY=your_firebase_api_key
    FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
    FIREBASE_PROJECT_ID=your_project_id
+   FRONTEND_ORIGIN=http://localhost:5173
    ```
 
 5. **Start the servers**
@@ -89,7 +90,7 @@ A multiplayer drawing and guessing game built with React, Node.js, Socket.IO, an
 
 6. **Access the application**
    - Frontend: http://localhost:5173
-   - Backend: http://localhost:3001
+   - Backend API & Socket.IO: http://localhost:3001
 
 ## 📁 Project Structure
 
@@ -147,17 +148,16 @@ InkLink/
 ## 🔧 API Endpoints
 
 ### REST API
-- `POST /api/rooms/words` - Upload custom word list
-- `GET /api/user/profile` - Get user profile data
-- `POST /api/gallery/save` - Save drawing to gallery
+- `POST /api/rooms/words` - Upload custom word list (host only)
+- `GET /api/user/profile` - Fetch XP, level, cosmetics
+- `POST /api/gallery/save` - Placeholder: persist finished drawings
 
 ### Socket.IO Events
-- `create_room` - Create a new game room
-- `join_room` - Join an existing room
-- `send_message` - Send chat/guess message
-- `draw_stroke` - Send drawing stroke data
-- `set_room_difficulty` - Change room difficulty
-- `get_room_settings` - Get current room settings
+- `create_room` / `join_room` - Room lifecycle
+- `word_choices` / `choose_word` - Drawer word selection
+- `drawing_data` / `clear_canvas` - Collaborative canvas updates
+- `send_message` - Chat and guess submissions
+- `correct_guess` / `time_up` - Round resolution events
 
 ## 🛠️ Technologies Used
 
@@ -209,21 +209,33 @@ The app uses Tailwind CSS. Main color scheme:
 ## 🚀 Deployment
 
 ### Environment Variables
+
+#### Backend (Render or local)
 ```env
-MONGO_URI=mongodb://localhost:27017/inklink
+MONGO_URI=your_mongodb_connection_string
 PORT=3001
 FIREBASE_API_KEY=your_api_key
 FIREBASE_AUTH_DOMAIN=your_domain
 FIREBASE_PROJECT_ID=your_project_id
+FRONTEND_ORIGIN=https://your-vercel-app.vercel.app
+FRONTEND_ORIGIN_2=https://your-preview.vercel.app   # optional
 ```
 
-### Production Build
+#### Frontend (Vercel or local `.env.local`)
+```env
+VITE_SOCKET_SERVER_URL=https://your-backend.onrender.com
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_domain
+VITE_FIREBASE_PROJECT_ID=your_project_id
+```
+
+### Production Build & Deploy
 ```bash
-# Frontend
+# Frontend (Vercel builds automatically, local build command shown for reference)
 cd client
 npm run build
 
-# Backend
+# Backend (Render auto deploys on git push to main)
 cd server
 npm start
 ```
