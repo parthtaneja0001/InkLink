@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import { io } from 'socket.io-client';
+import socket, { SOCKET_SERVER_URL } from './socket';
 import './index.css';
 
 // --- 1. FIREBASE/FIRESTORE LOGIC ---
@@ -106,14 +106,6 @@ const logOut = async () => {
         throw error;
     }
 };
-
-// --- 2. SOCKET.IO CLIENT LOGIC ---
-const SOCKET_SERVER_URL = "http://localhost:3001"; 
-
-const socket = io(SOCKET_SERVER_URL, {
-    autoConnect: false, 
-    query: { userId: null } // userId is set after authentication
-});
 
 // --- Utility: Random Room ID Generator ---
 const generateRoomId = () => Math.random().toString(36).substring(2, 6).toUpperCase();
