@@ -107,6 +107,9 @@ module.exports = (io, models) => {
 
         room.startTime = Date.now();
         room.strokeHistory = [];
+        
+        // Clear canvas for all clients at the start of each round
+        io.to(roomId).emit('canvas_sync', []);
 
         // Rotate drawer
         const currentDrawer = room.players.shift();

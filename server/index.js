@@ -17,6 +17,21 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const MONGO_URI = process.env.MONGO_URI;
 
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "http://localhost:5176",
+    "http://localhost:5177",
+    "http://10.51.14.169:5173",
+    "http://10.51.14.169:5174",
+    "http://10.51.14.169:5175",
+    "http://10.51.14.169:5176",
+    "http://10.51.14.169:5177"
+];
+if (process.env.FRONTEND_ORIGIN) allowedOrigins.push(process.env.FRONTEND_ORIGIN);
+if (process.env.FRONTEND_ORIGIN_2) allowedOrigins.push(process.env.FRONTEND_ORIGIN_2);
+
 // --- Database Connection ---
 mongoose.connect(MONGO_URI)
     .then(() => console.log('MongoDB connected successfully'))
@@ -24,18 +39,7 @@ mongoose.connect(MONGO_URI)
 
 // --- Middlewares & Routing ---
 app.use(cors({
-    origin: [
-        "http://localhost:5173", 
-        "http://localhost:5174",
-        "http://localhost:5175",
-        "http://localhost:5176",
-        "http://localhost:5177",
-        "http://10.51.14.169:5173",
-        "http://10.51.14.169:5174",
-        "http://10.51.14.169:5175",
-        "http://10.51.14.169:5176",
-        "http://10.51.14.169:5177"
-    ], // Frontend URLs including network IP and additional ports
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT"],
     credentials: true
 }));
@@ -54,18 +58,7 @@ const server = http.createServer(app);
 // --- Socket.IO Setup ---
 const io = new Server(server, {
     cors: {
-        origin: [
-            "http://localhost:5173", 
-            "http://localhost:5174",
-            "http://localhost:5175",
-            "http://localhost:5176",
-            "http://localhost:5177",
-            "http://10.51.14.169:5173",
-            "http://10.51.14.169:5174",
-            "http://10.51.14.169:5175",
-            "http://10.51.14.169:5176",
-            "http://10.51.14.169:5177"
-        ], // Match frontend URLs including network IP and additional ports
+        origin: allowedOrigins,
         methods: ["GET", "POST"],
         credentials: true
     },
