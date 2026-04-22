@@ -73,21 +73,6 @@ app.get('/', (req, res) => {
     res.send('INKLINK Server is running.');
 });
 
-// Health check — also pings MongoDB so Atlas free-tier clusters stay active.
-// Point UptimeRobot (or similar) at this endpoint every 5 minutes.
-app.get('/health', async (req, res) => {
-    try {
-        if (mongoose.connection.readyState !== 1) {
-            return res.status(503).json({ ok: false, db: 'disconnected' });
-        }
-        await mongoose.connection.db.admin().ping();
-        res.json({ ok: true, db: 'connected', uptime: process.uptime() });
-    } catch (err) {
-        console.error('[HEALTH] ping failed:', err);
-        res.status(500).json({ ok: false, error: err.message });
-    }
-});
-
 // 404 handler
 app.use((req, res) => {
     console.warn(`[HTTP] 404 Not Found: ${req.method} ${req.url}`);
