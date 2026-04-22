@@ -318,6 +318,7 @@ const DrawingCanvasComponent = ({ roomId, isDrawer, currentWord }) => {
 
 // --- Game Room Page Component (Integrated) ---
 const GameRoom = ({ userId, roomId, setIsInGame, username }) => {
+    const navigate = useNavigate();
     const [gameState, setGameState] = useState({
         drawerId: null,
         drawerUsername: null,
@@ -415,13 +416,9 @@ const GameRoom = ({ userId, roomId, setIsInGame, username }) => {
         socket.on('set_word_hint', (hint) => {
             console.debug('[SOCKET] set_word_hint', hint);
             setGameState(prev => ({ ...prev, wordHint: hint }));
-            
-            // Start 1-minute guessing timer for non-drawers
-            if (!isDrawer) {
-                setTimeLeft(60); // 1 minute = 60 seconds
-                setIsGuessing(true);
-                console.log('[TIMER] Starting 1-minute guessing timer');
-            }
+            // Start 1-minute round timer for everyone (drawer + guessers)
+            setTimeLeft(60);
+            setIsGuessing(true);
         });
 
         // XP System & Correct Guess Logic
@@ -483,6 +480,7 @@ const GameRoom = ({ userId, roomId, setIsInGame, username }) => {
         console.debug('[SOCKET] emit leave_room', roomId);
         socket.emit('leave_room', roomId);
         setIsInGame(false);
+        navigate('/');
     };
     
     // Sort players by room score (desc) for the leaderboard
@@ -580,14 +578,15 @@ const GameRoom = ({ userId, roomId, setIsInGame, username }) => {
                                 <div className="text-xl font-bold">{roomId}</div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            {!isDrawer && isGuessing && (
-                                <div className={`px-4 py-2 rounded-xl font-bold text-sm border ${
+                        <div className="flex items-center gap-3">
+                            {isGuessing && (
+                                <div className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-mono font-bold text-2xl border-2 shadow-lg ${
                                     timeLeft <= 10
-                                        ? 'bg-red-500/20 border-red-400/40 text-red-300 animate-pulse'
-                                        : 'bg-white/5 border-white/10 text-slate-200'
+                                        ? 'bg-red-500/20 border-red-400/60 text-red-300 animate-pulse shadow-red-500/30'
+                                        : 'bg-cyan-500/15 border-cyan-400/50 text-cyan-200 shadow-cyan-500/20'
                                 }`}>
-                                    ⏱ {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                                    <span className="text-lg">⏱</span>
+                                    {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
                                 </div>
                             )}
                             <button
@@ -781,7 +780,7 @@ const Home = ({ joinRoom, createRoom, userId, profile, username, setUsername, so
     const [errorMessage, setErrorMessage] = useState('');
     const [usernameError, setUsernameError] = useState('');
     const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-    const [isLoadingUsername, setIsLoadingUsername] = useState(true);
+    const [isLoadingUsername, setIsLoadingUsername] = useState(!username);
     
     // Debug logging for Home component
     useEffect(() => {
