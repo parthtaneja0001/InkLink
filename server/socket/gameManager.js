@@ -360,6 +360,26 @@ module.exports = (io, models) => {
             }
         });
 
+        socket.on('get_user_profile', async (userId) => {
+            try {
+                const user = await User.findOne({ firebaseUid: userId });
+                if (user) {
+                    socket.emit('user_profile', {
+                        username: user.username,
+                        xp: user.xp || 0,
+                        level: user.level || 1,
+                        totalDrawingsGuessed: user.totalDrawingsGuessed || 0,
+                        memberSince: user.createdAt,
+                    });
+                } else {
+                    socket.emit('user_profile', null);
+                }
+            } catch (error) {
+                console.error('[SOCKET] Error getting user profile:', error);
+                socket.emit('user_profile', null);
+            }
+        });
+
         socket.on('get_user_score', async (userId) => {
             console.log(`[SOCKET] Getting score for user: ${userId}`);
             try {

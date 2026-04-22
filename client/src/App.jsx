@@ -781,6 +781,7 @@ const Home = ({ joinRoom, createRoom, userId, profile, username, setUsername, so
     const [usernameError, setUsernameError] = useState('');
     const [isCheckingUsername, setIsCheckingUsername] = useState(false);
     const [isLoadingUsername, setIsLoadingUsername] = useState(!username);
+    const [userProfile, setUserProfile] = useState(null);
     
     // Debug logging for Home component
     useEffect(() => {
@@ -811,6 +812,15 @@ const Home = ({ joinRoom, createRoom, userId, profile, username, setUsername, so
         // Check if username is available
         socket.emit('check_username', usernameInput);
     };
+
+    // Fetch full user profile whenever we have a known username
+    useEffect(() => {
+        if (!userId || !username) return;
+        const handleUserProfile = (data) => setUserProfile(data);
+        socket.on('user_profile', handleUserProfile);
+        socket.emit('get_user_profile', userId);
+        return () => socket.off('user_profile', handleUserProfile);
+    }, [userId, username, socket]);
 
     // Handle username validation responses
     useEffect(() => {
@@ -939,20 +949,65 @@ const Home = ({ joinRoom, createRoom, userId, profile, username, setUsername, so
                     </form>
                 ) : (
                     <>
-                        {profile && (
-                            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl mb-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="text-xs uppercase tracking-wider text-slate-400">Welcome back</div>
-                                        <div className="text-lg font-bold text-white">{username}</div>
+                        {(() => {
+                            const stats = userProfile || profile || {};
+                            const xp = stats.xp ?? 0;
+                            const totalGuessed = stats.totalDrawingsGuessed ?? 0;
+                            const level = stats.level ?? Math.floor(xp / 500) + 1;
+                            const xpInLevel = xp % 500;
+                            const xpPct = Math.min(100, (xpInLevel / 500) * 100);
+                            const initial = (username || '?').charAt(0).toUpperCase();
+                            const memberSince = stats.memberSince
+                                ? new Date(stats.memberSince).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
+                                : null;
+                            return (
+                                <div className="relative bg-gradient-to-br from-cyan-500/10 to-teal-500/5 border border-cyan-400/20 p-5 rounded-2xl mb-6 overflow-hidden">
+                                    <div className="absolute -right-6 -top-6 w-28 h-28 bg-cyan-400/20 rounded-full blur-2xl pointer-events-none" />
+                                    <div className="relative flex items-center gap-4">
+                                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center font-black text-white text-2xl shadow-lg shadow-cyan-500/30 ring-2 ring-cyan-400/30">
+                                            {initial}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-[10px] uppercase tracking-widest text-cyan-300">Welcome back</div>
+                                            <div className="text-xl font-bold text-white truncate">{username}</div>
+                                            {memberSince && (
+                                                <div className="text-[11px] text-slate-400">Member since {memberSince}</div>
+                                            )}
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-[10px] uppercase tracking-widest text-slate-400">Level</div>
+                                            <div className="text-2xl font-black text-cyan-300 leading-none">{level}</div>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-xs text-slate-400">Level {profile.level}</div>
-                                        <div className="text-sm font-semibold text-emerald-400">{profile.xp} XP</div>
+
+                                    {/* XP progress */}
+                                    <div className="relative mt-4">
+                                        <div className="flex justify-between text-[10px] uppercase tracking-widest text-slate-400 mb-1">
+                                            <span>XP Progress</span>
+                                            <span>{xpInLevel} / 500</span>
+                                        </div>
+                                        <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-cyan-400 to-teal-400 rounded-full transition-all duration-500"
+                                                style={{ width: `${xpPct}%` }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Stats grid */}
+                                    <div className="relative grid grid-cols-2 gap-2 mt-4">
+                                        <div className="bg-white/5 border border-white/5 rounded-xl px-3 py-2">
+                                            <div className="text-[10px] uppercase tracking-widest text-slate-400">Total XP</div>
+                                            <div className="text-lg font-bold text-emerald-300">{xp}</div>
+                                        </div>
+                                        <div className="bg-white/5 border border-white/5 rounded-xl px-3 py-2">
+                                            <div className="text-[10px] uppercase tracking-widest text-slate-400">Guessed</div>
+                                            <div className="text-lg font-bold text-cyan-200">{totalGuessed}</div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            );
+                        })()}
 
                         {errorMessage && (
                             <div className="mb-4 p-3 bg-red-500/15 border border-red-400/40 text-red-300 rounded-xl text-sm">
