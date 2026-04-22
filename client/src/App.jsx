@@ -285,7 +285,7 @@ const DrawingCanvasComponent = ({ roomId, isDrawer, currentWord }) => {
                             type="range" min="1" max="20"
                             value={drawingProps.size}
                             onChange={(e) => setDrawingProps(prev => ({ ...prev, size: parseInt(e.target.value) }))}
-                            className="w-32 accent-indigo-400"
+                            className="w-32 accent-cyan-400"
                         />
                         <span className="w-6 text-center font-semibold">{drawingProps.size}</span>
                     </label>
@@ -490,11 +490,11 @@ const GameRoom = ({ userId, roomId, setIsInGame, username }) => {
     const rankMedal = (i) => (i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`);
 
     return (
-        <div className="flex h-screen font-sans text-slate-100 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 overflow-hidden">
+        <div className="flex h-screen font-sans text-slate-100 bg-gradient-to-br from-slate-950 via-[#0a1a1f] to-slate-950 overflow-hidden">
             {/* Decorative background blobs */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 right-0 w-[30rem] h-[30rem] bg-fuchsia-500/10 rounded-full blur-3xl" />
+                <div className="absolute -top-24 -left-24 w-96 h-96 bg-cyan-400/25 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-0 right-0 w-[30rem] h-[30rem] bg-teal-500/10 rounded-full blur-3xl" />
             </div>
 
             {/* Left Sidebar - Leaderboard */}
@@ -502,7 +502,7 @@ const GameRoom = ({ userId, roomId, setIsInGame, username }) => {
                 <div className="p-5 border-b border-white/10">
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg font-bold tracking-wide">Leaderboard</h2>
-                        <span className="text-xs px-2 py-1 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold">
+                        <span className="text-xs px-2 py-1 rounded-full bg-cyan-500/20 text-cyan-300 font-semibold">
                             {gameState.players.length} {gameState.players.length === 1 ? 'player' : 'players'}
                         </span>
                     </div>
@@ -520,7 +520,7 @@ const GameRoom = ({ userId, roomId, setIsInGame, username }) => {
                                 key={p.userId}
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition ${
                                     isMe
-                                        ? 'bg-indigo-500/20 border-indigo-400/40 shadow-lg shadow-indigo-500/10'
+                                        ? 'bg-cyan-500/20 border-cyan-400/40 shadow-lg shadow-cyan-500/10'
                                         : 'bg-white/5 border-white/5 hover:bg-white/10'
                                 }`}
                             >
@@ -530,7 +530,7 @@ const GameRoom = ({ userId, roomId, setIsInGame, username }) => {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
                                         <span className="font-semibold truncate">
-                                            {p.username}{isMe && <span className="text-indigo-300 font-normal"> (you)</span>}
+                                            {p.username}{isMe && <span className="text-cyan-300 font-normal"> (you)</span>}
                                         </span>
                                         {p.isDrawer && (
                                             <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-semibold uppercase tracking-wider">
@@ -572,7 +572,7 @@ const GameRoom = ({ userId, roomId, setIsInGame, username }) => {
                     {/* Header bar */}
                     <div className="w-full max-w-4xl flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 flex items-center justify-center font-black text-white shadow-lg">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center font-black text-white shadow-lg">
                                 IL
                             </div>
                             <div>
@@ -672,11 +672,11 @@ const GameRoom = ({ userId, roomId, setIsInGame, username }) => {
                                 <div key={index} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                                     <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm break-words shadow ${
                                         mine
-                                            ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-br-sm'
+                                            ? 'bg-gradient-to-br from-cyan-500 to-teal-600 text-white rounded-br-sm'
                                             : 'bg-white/10 text-slate-100 rounded-bl-sm'
                                     }`}>
                                         {!mine && (
-                                            <div className="text-[10px] font-bold text-indigo-300 mb-0.5">
+                                            <div className="text-[10px] font-bold text-cyan-300 mb-0.5">
                                                 {msg.username || msg.user}
                                             </div>
                                         )}
@@ -695,12 +695,12 @@ const GameRoom = ({ userId, roomId, setIsInGame, username }) => {
                                 value={guessInput}
                                 onChange={(e) => setGuessInput(e.target.value)}
                                 placeholder={isDrawer ? "Drawers can't guess" : 'Type your guess…'}
-                                className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 placeholder-slate-500 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-400/60 focus:border-transparent transition disabled:opacity-40"
+                                className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 placeholder-slate-500 text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/60 focus:border-transparent transition disabled:opacity-40"
                                 disabled={isDrawer}
                             />
                             <button
                                 type="submit"
-                                className="px-5 py-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white font-semibold shadow-lg hover:shadow-indigo-500/40 hover:scale-[1.02] transition disabled:opacity-40 disabled:hover:scale-100"
+                                className="px-5 py-2.5 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-500 text-white font-semibold shadow-lg hover:shadow-cyan-500/40 hover:scale-[1.02] transition disabled:opacity-40 disabled:hover:scale-100"
                                 disabled={isDrawer}
                             >
                                 Send
@@ -733,14 +733,14 @@ const GoogleLogin = ({ onAuthSuccess }) => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-[#0a1a1f] to-slate-950 relative overflow-hidden">
             <div className="pointer-events-none absolute inset-0">
-                <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 right-0 w-[30rem] h-[30rem] bg-fuchsia-500/10 rounded-full blur-3xl" />
+                <div className="absolute -top-24 -left-24 w-96 h-96 bg-cyan-400/25 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-0 right-0 w-[30rem] h-[30rem] bg-teal-500/10 rounded-full blur-3xl" />
             </div>
             <div className="relative bg-slate-900/60 backdrop-blur-xl border border-white/10 p-10 rounded-3xl shadow-2xl w-full max-w-md">
                 <div className="flex items-center justify-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 flex items-center justify-center font-black text-white text-xl shadow-lg">IL</div>
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center font-black text-white text-xl shadow-lg">IL</div>
                     <h1 className="text-4xl font-black text-white tracking-tight">InkLink</h1>
                 </div>
                 <p className="text-center text-slate-400 mb-8">Draw. Guess. Climb the leaderboard.</p>
@@ -896,21 +896,21 @@ const Home = ({ joinRoom, createRoom, userId, profile, username, setUsername, so
     };
     
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-[#0a1a1f] to-slate-950 relative overflow-hidden">
             <div className="pointer-events-none absolute inset-0">
-                <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 right-0 w-[30rem] h-[30rem] bg-fuchsia-500/10 rounded-full blur-3xl" />
+                <div className="absolute -top-24 -left-24 w-96 h-96 bg-cyan-400/25 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-0 right-0 w-[30rem] h-[30rem] bg-teal-500/10 rounded-full blur-3xl" />
             </div>
             <div className="relative bg-slate-900/60 backdrop-blur-xl border border-white/10 p-8 md:p-10 rounded-3xl shadow-2xl w-full max-w-md">
                 <div className="flex items-center justify-center gap-3 mb-2">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 flex items-center justify-center font-black text-white text-xl shadow-lg">IL</div>
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center font-black text-white text-xl shadow-lg">IL</div>
                     <h1 className="text-4xl font-black text-white tracking-tight">InkLink</h1>
                 </div>
                 <p className="text-center text-slate-400 text-sm mb-8">Real-time drawing + guessing</p>
 
                 {isLoadingUsername ? (
                     <div className="text-center py-6">
-                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-400 border-t-transparent mx-auto mb-4"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-cyan-400 border-t-transparent mx-auto mb-4"></div>
                         <p className="text-slate-400">Loading your profile…</p>
                     </div>
                 ) : showUsernameInput ? (
@@ -921,7 +921,7 @@ const Home = ({ joinRoom, createRoom, userId, profile, username, setUsername, so
                                 type="text"
                                 name="username"
                                 placeholder="e.g. pixelpro"
-                                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-400/60 focus:border-transparent transition"
+                                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/60 focus:border-transparent transition"
                                 maxLength={20}
                                 required
                                 disabled={isCheckingUsername}
@@ -933,7 +933,7 @@ const Home = ({ joinRoom, createRoom, userId, profile, username, setUsername, so
                         <button
                             type="submit"
                             disabled={isCheckingUsername}
-                            className="w-full py-3 rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white font-semibold shadow-lg hover:shadow-indigo-500/40 hover:scale-[1.01] transition disabled:opacity-50 disabled:hover:scale-100"
+                            className="w-full py-3 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-500 text-white font-semibold shadow-lg hover:shadow-cyan-500/40 hover:scale-[1.01] transition disabled:opacity-50 disabled:hover:scale-100"
                         >
                             {isCheckingUsername ? 'Checking…' : 'Continue'}
                         </button>
@@ -967,7 +967,7 @@ const Home = ({ joinRoom, createRoom, userId, profile, username, setUsername, so
                                 value={inputRoomId}
                                 onChange={(e) => setInputRoomId(e.target.value.toUpperCase())}
                                 placeholder="ROOM CODE"
-                                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-400/60 focus:border-transparent transition uppercase tracking-widest text-center font-mono text-lg"
+                                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/60 focus:border-transparent transition uppercase tracking-widest text-center font-mono text-lg"
                                 maxLength={5}
                             />
 
@@ -980,7 +980,7 @@ const Home = ({ joinRoom, createRoom, userId, profile, username, setUsername, so
                                 </button>
                                 <button
                                     onClick={handleJoinRoom}
-                                    className="py-3 rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white font-semibold shadow-lg hover:shadow-indigo-500/40 transition"
+                                    className="py-3 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-500 text-white font-semibold shadow-lg hover:shadow-cyan-500/40 transition"
                                 >
                                     Join
                                 </button>
@@ -1239,9 +1239,9 @@ function App() {
 
     if (!isAuthReady) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-slate-300">
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-[#0a1a1f] to-slate-950 text-slate-300">
                 <div className="flex items-center gap-3">
-                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-indigo-400 border-t-transparent" />
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-cyan-400 border-t-transparent" />
                     <span className="text-base font-medium">Authenticating…</span>
                 </div>
             </div>

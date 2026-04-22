@@ -319,8 +319,18 @@ module.exports = (io, models) => {
         // Check username availability
         socket.on('check_username', async (username) => {
             console.log(`[SOCKET] Checking username: ${username}`);
+            const mongoose = require('mongoose');
+            if (mongoose.connection.readyState !== 1) {
+                console.error('[SOCKET] MongoDB not connected, readyState=', mongoose.connection.readyState);
+                socket.emit('username_error', { message: 'Server database is offline. Please try again in a moment.' });
+                return;
+            }
+            if (!username || typeof username !== 'string' || !username.trim()) {
+                socket.emit('username_error', { message: 'Please enter a valid username.' });
+                return;
+            }
             try {
-                const existingUser = await User.findOne({ username: username.toLowerCase() });
+                const existingUser = await User.findOne({ username: username.trim().toLowerCase() });
                 if (existingUser) {
                     socket.emit('username_taken', { message: 'Username already taken. Please choose another one.' });
                 } else {
@@ -328,7 +338,7 @@ module.exports = (io, models) => {
                 }
             } catch (error) {
                 console.error('[SOCKET] Error checking username:', error);
-                socket.emit('username_error', { message: 'Error checking username. Please try again.' });
+                socket.emit('username_error', { message: `Error checking username: ${error.message || 'unknown error'}` });
             }
         });
 
