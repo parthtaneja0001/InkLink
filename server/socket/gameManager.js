@@ -75,6 +75,52 @@ async function selectWordOptions(roomId, RoomModel, WordModel, numOptions = 3) {
 module.exports = (io, models) => {
     const { User, Room, Word } = models;
 
+    // Build enriched player list (userId, username, score, isDrawer) and broadcast it
+    const broadcastPlayerList = async (roomId) => {
+        const room = gameRooms[roomId];
+        if (!room) return;
+        try {
+            const users = await User.find({ firebaseUid: { $in: room.players } });
+            const byUid = Object.fromEntries(users.map(u => [u.firebaseUid, u]));
+            const list = room.players.map(uid => ({
+                userId: uid,
+                username: byUid[uid]?.username || uid,
+                score: room.scores?.[uid] || 0,
+                level: byUid[uid]?.level || 1,
+                isDrawer: uid === room.drawerId,
+            }));
+            io.to(roomId).emit('player_list_update', list);
+        } catch (err) {
+            console.error('[SOCKET] broadcastPlayerList failed:', err);
+            io.to(roomId).emit('player_list_update', room.players.map(uid => ({
+                userId: uid, username: uid, score: room.scores?.[uid] || 0, level: 1, isDrawer: uid === room.drawerId,
+            })));
+        }
+    };
+
+    // Remove a player from a room and clean up if empty
+    const removePlayerFromRoom = async (roomId, userId) => {
+        const room = gameRooms[roomId];
+        if (!room) return;
+        room.players = room.players.filter(p => p !== userId);
+        if (room.scores) delete room.scores[userId];
+        if (room.players.length === 0) {
+            if (room.guessingTimeout) clearTimeout(room.guessingTimeout);
+            if (room.choiceTimeout) clearTimeout(room.choiceTimeout);
+            delete gameRooms[roomId];
+            return;
+        }
+        // If the drawer left, rotate to next player and start a new round
+        if (room.drawerId === userId) {
+            room.drawerId = room.players[0];
+            room.currentWord = '';
+            if (room.guessingTimeout) clearTimeout(room.guessingTimeout);
+            if (room.choiceTimeout) clearTimeout(room.choiceTimeout);
+            setTimeout(() => startGameRound(roomId), 1500);
+        }
+        await broadcastPlayerList(roomId);
+    };
+
     // Function to start 1-minute guessing timeout
     const startGuessingTimeout = (roomId, io) => {
         if (!gameRooms[roomId]) return;
@@ -123,6 +169,9 @@ module.exports = (io, models) => {
         // Get drawer username
         const drawerUser = await User.findOne({ firebaseUid: drawerId });
         const drawerUsername = drawerUser ? drawerUser.username : drawerId;
+
+        // Update leaderboard (drawer badge moves)
+        await broadcastPlayerList(roomId);
 
         // Announce new round and who is drawer (no hint yet)
         io.to(roomId).emit('game_start_round', {
@@ -198,17 +247,17 @@ module.exports = (io, models) => {
             }
             
             socket.join(roomId);
-            
+
             // Create new room
             console.log(`[SOCKET] Creating new room ${roomId} with host ${initialUserId}`);
             const newRoom = new Room({ roomId, hostId: initialUserId, wordListSource: 'default' });
             await newRoom.save();
-            
-            gameRooms[roomId] = { players: [initialUserId], strokeHistory: [], currentWord: '', startTime: null, drawerId: initialUserId };
+
+            gameRooms[roomId] = { players: [initialUserId], strokeHistory: [], currentWord: '', startTime: null, drawerId: initialUserId, scores: { [initialUserId]: 0 } };
             await startGameRound(roomId, socket);
-            
+
             console.log(`[SOCKET] Room ${roomId} created successfully`);
-            io.to(roomId).emit('player_list_update', gameRooms[roomId].players);
+            await broadcastPlayerList(roomId);
             socket.emit('room_created', { roomId, message: 'Room created successfully!' });
         });
 
@@ -245,12 +294,14 @@ module.exports = (io, models) => {
                 // Existing active room, add player
                 console.log(`[SOCKET] Adding player ${userId} to existing room ${roomId}`);
                 gameRooms[roomId].players.push(userId);
+                if (!gameRooms[roomId].scores) gameRooms[roomId].scores = {};
+                if (gameRooms[roomId].scores[userId] == null) gameRooms[roomId].scores[userId] = 0;
                 socket.emit('canvas_sync', gameRooms[roomId].strokeHistory);
             }
-            
+
             socket.join(roomId);
             console.log(`[SOCKET] Room ${roomId} players:`, gameRooms[roomId].players);
-            io.to(roomId).emit('player_list_update', gameRooms[roomId].players);
+            await broadcastPlayerList(roomId);
             
             // Get username for the joined player and emit it
             try {
@@ -429,13 +480,18 @@ module.exports = (io, models) => {
                         { new: true }
                     );
 
+                    // Track room-scoped score
+                    if (!room.scores) room.scores = {};
+                    room.scores[message.user] = (room.scores[message.user] || 0) + xpAward;
+
                     io.to(roomId).emit('correct_guess', { guesser: user.username, xp: xpAward, word: room.currentWord });
-                    
+
                     // Send updated score to the user who guessed correctly
                     if (updatedUser) {
                         socket.emit('user_score', { xp: updatedUser.xp, level: updatedUser.level });
                     }
-                    setTimeout(() => startGameRound(roomId, socket), 4000); 
+                    await broadcastPlayerList(roomId);
+                    setTimeout(() => startGameRound(roomId, socket), 4000);
 
                 } catch (error) {
                     console.error("XP update failed:", error);
@@ -443,10 +499,23 @@ module.exports = (io, models) => {
             }
         });
 
-        socket.on('disconnect', () => {
-            // Cleanup logic here
-            // Note: We don't clear timeouts here as the room might still be active
-            // The timeouts will be cleared when the room is actually cleaned up
+        socket.on('leave_room', async (roomId) => {
+            console.log(`[SOCKET] leave_room: roomId=${roomId}, userId=${userId}`);
+            socket.leave(roomId);
+            await removePlayerFromRoom(roomId, userId);
+        });
+
+        socket.on('disconnect', async () => {
+            // If this was the last socket for this user, remove them from any rooms they're in
+            const stillConnected = Array.from(io.sockets.sockets.values()).some(s =>
+                s.id !== socket.id && s.handshake.query.userId === userId
+            );
+            if (stillConnected) return;
+            for (const roomId of Object.keys(gameRooms)) {
+                if (gameRooms[roomId]?.players.includes(userId)) {
+                    await removePlayerFromRoom(roomId, userId);
+                }
+            }
         });
     });
 };
